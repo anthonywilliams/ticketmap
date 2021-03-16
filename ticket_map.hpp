@@ -71,13 +71,13 @@ namespace jss {
 
             /// Pre-increment
             iterator_impl &operator++() noexcept {
-                ++iter;
+                iter= map->next_valid(++iter);
                 return *this;
             }
 
             /// Post-increment
             iterator_impl operator++(int) noexcept {
-                iterator_impl temp{**this};
+                iterator_impl temp{*this};
                 ++*this;
                 return temp;
             }
@@ -87,8 +87,8 @@ namespace jss {
                 typename= std::enable_if_t<
                     std::is_same<Other, iterator_impl<false>>::value &&
                     is_const>>
-            constexpr iterator_impl(Other other) noexcept :
-                iter(std::move(other.iter)) {}
+            constexpr iterator_impl(Other const &other) noexcept :
+                iter(other.iter), map(other.map) {}
 
             constexpr iterator_impl() noexcept= default;
 
@@ -100,11 +100,16 @@ namespace jss {
                 is_const, typename collection_type::const_iterator,
                 typename collection_type::iterator>;
 
-            constexpr iterator_impl(underlying_iterator iter_) :
-                iter(std::move(iter_)) {}
+            using map_ptr=
+                std::conditional_t<is_const, ticket_map const *, ticket_map *>;
+
+            constexpr iterator_impl(underlying_iterator iter_, map_ptr map_) :
+                iter(std::move(iter_)), map(map_) {}
 
             /// The stored iterator
             underlying_iterator iter;
+            /// The map
+            map_ptr map;
         };
 
     public:
@@ -122,26 +127,26 @@ namespace jss {
         }
 
         constexpr iterator insert(Value v) {
-            auto res=
-                iterator(data.insert(data.end(), {nextId++, std::move(v)}));
+            auto res= iterator(
+                data.insert(data.end(), {nextId++, std::move(v)}), this);
             ++filledItems;
             return res;
         }
 
         constexpr const_iterator find(const Key &key) const noexcept {
-            return lookup<true>(key);
+            return {lookup<true>(key), this};
         }
 
         constexpr iterator find(const Key &key) noexcept {
-            return lookup<false>(key);
+            return {lookup<false>(key), this};
         }
 
         constexpr iterator begin() noexcept {
-            return iterator(next_valid(data.begin()));
+            return {next_valid(data.begin()), this};
         }
 
         constexpr iterator end() noexcept {
-            return iterator(data.end());
+            return {data.end(), this};
         }
 
         constexpr iterator erase(const Key &key) noexcept {
@@ -151,11 +156,11 @@ namespace jss {
                 iter= next_valid(iter);
                 --filledItems;
             }
-            return iter;
+            return {iter, this};
         }
 
     private:
-        template <typename Iter> Iter next_valid(Iter iter) {
+        template <typename Iter> Iter next_valid(Iter iter) const {
             for(; iter != data.end() && !iter->second; ++iter)
                 ;
             return iter;

@@ -117,6 +117,36 @@ void test_after_erasing_value_not_there() {
     assert(iter2 == map.end());
 }
 
+void test_after_erasing_middle_element_iteration_skips_it() {
+    jss::ticket_map<unsigned short, std::string> map;
+
+    map.insert("first");
+    auto ticket= map.insert("second")->ticket;
+    map.insert("third");
+    auto after_erased= map.erase(ticket);
+    assert(after_erased != map.end());
+    assert(after_erased->ticket == 2);
+    assert(after_erased->value == "third");
+
+    assert(map.size() == 2);
+
+    unsigned index= 0;
+    auto it= map.begin();
+    assert(it != after_erased);
+    assert(it != map.end());
+    assert(it->ticket == 0);
+    assert(it->value == "first");
+    assert(it != after_erased);
+    ++it;
+    assert(it == after_erased);
+    assert(it != map.end());
+    assert(it->ticket == 2);
+    assert(it->value == "third");
+    assert((it++)->ticket == 2);
+    assert(it != after_erased);
+    assert(it == map.end());
+}
+
 int main() {
     test_initially_empty();
     test_inserting_a_value_gives_iterator_to_new_element();
@@ -126,4 +156,5 @@ int main() {
     test_empty_map_has_begin_equal_end();
     test_begin_and_end_types();
     test_after_erasing_value_not_there();
+    test_after_erasing_middle_element_iteration_skips_it();
 }
