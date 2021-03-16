@@ -217,5 +217,14 @@ namespace jss {
         Key nextId;
         collection_type data;
         std::size_t filledItems;
-    }; // namespace jss
+    };
 } // namespace jss
+
+namespace std {
+
+    template <typename Key, typename Value>
+    void
+    swap(jss::ticket_map<Key, Value> &lhs, jss::ticket_map<Key, Value> &rhs) {
+        lhs.swap(rhs);
+    }
+} // namespace std

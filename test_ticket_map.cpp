@@ -312,6 +312,42 @@ void test_swapping_containers_swaps_everything_including_next_ticket() {
     assert(ticket2 == count1);
 }
 
+void test_can_swap_with_std_swap() {
+    jss::ticket_map<int, int> a, b;
+
+    unsigned const count1= 100;
+    for(unsigned i= 0; i < count1; ++i) {
+        a.insert(i);
+    }
+
+    unsigned const count2= 200;
+    for(unsigned i= 0; i < count2; ++i) {
+        b.insert(i + 1000);
+    }
+
+    assert(a.size() == count1);
+    assert(b.size() == count2);
+
+    std::swap(a, b);
+
+    for(unsigned i= 0; i < count2; ++i) {
+        assert(a.find(i)->value == i + 1000);
+    }
+
+    for(unsigned i= 0; i < count1; ++i) {
+        assert(b.find(i)->value == i);
+    }
+
+    assert(b.size() == count1);
+    assert(a.size() == count2);
+
+    auto ticket1= a.insert(99)->ticket;
+    auto ticket2= b.insert(99)->ticket;
+
+    assert(ticket1 == count2);
+    assert(ticket2 == count1);
+}
+
 int main() {
     test_initially_empty();
     test_inserting_a_value_gives_iterator_to_new_element();
@@ -328,4 +364,5 @@ int main() {
     test_can_erase_with_iterator();
     test_erase_lots_of_element_use_returned_iterator();
     test_swapping_containers_swaps_everything_including_next_ticket();
+    test_can_swap_with_std_swap();
 }
