@@ -158,6 +158,12 @@ namespace jss {
                     this};
         }
 
+        constexpr void swap(ticket_map &other) noexcept {
+            data.swap(other.data);
+            std::swap(filledItems, other.filledItems);
+            std::swap(nextId, other.nextId);
+        }
+
     private:
         template <typename Iter>
         constexpr Iter next_valid(Iter iter) const noexcept {
