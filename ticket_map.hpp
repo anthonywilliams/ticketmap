@@ -4,11 +4,13 @@
 #include <vector>
 #include <algorithm>
 #include <type_traits>
+#include <optional>
 
 namespace jss {
 
     template <typename Key, typename Value> class ticket_map {
-        using collection_type= std::vector<std::pair<Key, Value>>;
+        using collection_type=
+            std::vector<std::pair<Key, std::optional<Value>>>;
 
         /// The iterator for our range
         template <bool is_const> class iterator_impl {
@@ -59,12 +61,12 @@ namespace jss {
 
             /// Dereference the iterator
             const value_type operator*() const noexcept {
-                return value_type{iter->first, iter->second};
+                return value_type{iter->first, *iter->second};
             }
 
             /// Dereference for iter->m
             arrow_proxy operator->() const noexcept {
-                return arrow_proxy{value_type{iter->first, iter->second}};
+                return arrow_proxy{value_type{iter->first, *iter->second}};
             }
 
             /// Pre-increment
@@ -80,8 +82,20 @@ namespace jss {
                 return temp;
             }
 
+            template <
+                typename Other,
+                typename= std::enable_if_t<
+                    std::is_same<Other, iterator_impl<false>>::value &&
+                    is_const>>
+            constexpr iterator_impl(Other other) noexcept :
+                iter(std::move(other.iter)) {}
+
+            constexpr iterator_impl() noexcept= default;
+
         private:
             friend class ticket_map;
+            friend class iterator_impl<!is_const>;
+
             using underlying_iterator= std::conditional_t<
                 is_const, typename collection_type::const_iterator,
                 typename collection_type::iterator>;
@@ -115,25 +129,54 @@ namespace jss {
         }
 
         constexpr const_iterator find(const Key &key) const noexcept {
-            auto pos= std::lower_bound(
-                data.begin(), data.end(), key,
-                [](auto &value, const Key &key) { return value.first < key; });
-            if(pos == data.end() || pos->first != key)
-                return const_iterator(data.end());
-            return const_iterator(pos);
+            return lookup<true>(key);
+        }
+
+        constexpr iterator find(const Key &key) noexcept {
+            return lookup<false>(key);
         }
 
         constexpr iterator begin() noexcept {
-            return iterator(data.begin());
+            return iterator(next_valid(data.begin()));
         }
 
         constexpr iterator end() noexcept {
             return iterator(data.end());
         }
 
+        constexpr iterator erase(const Key &key) noexcept {
+            auto iter= lookup<false>(key);
+            if(iter != data.end()) {
+                iter->second.reset();
+                iter= next_valid(iter);
+                --filledItems;
+            }
+            return iter;
+        }
+
     private:
+        template <typename Iter> Iter next_valid(Iter iter) {
+            for(; iter != data.end() && !iter->second; ++iter)
+                ;
+            return iter;
+        }
+
+        template <bool is_const>
+        std::conditional_t<
+            is_const, typename collection_type::const_iterator,
+            typename collection_type::iterator>
+        lookup(Key const &key) noexcept {
+            auto pos= std::lower_bound(
+                data.begin(), data.end(), key,
+                [](auto &value, const Key &key) { return value.first < key; });
+
+            if(pos == data.end() || pos->first != key || !pos->second)
+                return data.end();
+            return pos;
+        }
+
         Key nextId;
         collection_type data;
         std::size_t filledItems;
-    };
+    }; // namespace jss
 } // namespace jss

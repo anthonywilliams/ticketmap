@@ -65,8 +65,12 @@ void test_can_iterate_over_values() {
 
     std::size_t index= 0;
     for(auto &entry : map) {
-        static_assert(std::is_same_v<decltype(entry.ticket), const int &>);
-        static_assert(std::is_same_v<decltype(entry.value), int &>);
+        static_assert(
+            std::is_same<decltype(entry.ticket), const int &>::value,
+            "Ticket must be int");
+        static_assert(
+            std::is_same<decltype(entry.value), int &>::value,
+            "Value must be ref");
         assert(entry.ticket == index);
         assert(entry.value == values[index]);
         ++index;
@@ -93,6 +97,26 @@ void test_begin_and_end_types() {
         "value is ref");
 }
 
+void test_after_erasing_value_not_there() {
+    jss::ticket_map<unsigned short, std::string> map;
+
+    auto iter= map.insert("hello");
+    assert(iter == map.begin());
+    assert(iter != map.end());
+
+    auto const ticket= iter->ticket;
+    assert(map.find(ticket) == iter);
+
+    auto iter2= map.erase(ticket);
+
+    assert(map.size() == 0);
+    assert(map.empty());
+
+    assert(map.begin() == map.end());
+    assert(map.find(ticket) == map.end());
+    assert(iter2 == map.end());
+}
+
 int main() {
     test_initially_empty();
     test_inserting_a_value_gives_iterator_to_new_element();
@@ -101,4 +125,5 @@ int main() {
     test_can_iterate_over_values();
     test_empty_map_has_begin_equal_end();
     test_begin_and_end_types();
+    test_after_erasing_value_not_there();
 }
