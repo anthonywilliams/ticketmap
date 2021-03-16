@@ -41,6 +41,16 @@ void test_inserting_a_bunch_of_elements_gives_iterators_and_updates_size() {
     }
 }
 
+void test_value_can_be_retrieved_if_inserted() {
+    jss::ticket_map<int, int> map;
+
+    map.insert(42);
+    auto iter= map.find(0);
+
+    assert(iter->ticket == 0);
+    assert(iter->value == 42);
+}
+
 int main() {
     test_initially_empty();
     test_inserting_a_value_gives_iterator_to_new_element();
