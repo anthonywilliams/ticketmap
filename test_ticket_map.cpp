@@ -440,6 +440,28 @@ void test_move_transfers_elements() {
     assert(map2.insert(-1)->ticket == count + 1);
 }
 
+void test_bulk_insert() {
+    jss::ticket_map<unsigned short, int> map;
+
+    unsigned const count= 100;
+    for(unsigned i= 0; i < count; ++i) {
+        map.insert(i + 1000);
+    }
+
+    std::vector<int> const extras= {1, 2, 42, 59, 66, 78, 99};
+
+    auto iter= map.insert(extras.begin(), extras.end());
+
+    assert(iter != map.end());
+    assert(iter->ticket == count);
+    assert(map.size() == count + extras.size());
+    for(auto it= extras.begin(); it != extras.end(); ++it, ++iter) {
+        assert(iter != map.end());
+        assert(iter->value == *it);
+    }
+    assert(iter == map.end());
+}
+
 int main() {
     test_initially_empty();
     test_inserting_a_value_gives_iterator_to_new_element();
@@ -460,4 +482,5 @@ int main() {
     test_clear_removes_elements_but_does_not_reset_ticket();
     test_copies_preserve_elements();
     test_move_transfers_elements();
+    test_bulk_insert();
 }

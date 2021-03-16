@@ -146,6 +146,15 @@ namespace jss {
             return res;
         }
 
+        template <typename Iter>
+        constexpr iterator insert(Iter first, Iter last) {
+            auto const index= data.size();
+            for(; first != last; ++first) {
+                insert(*first);
+            }
+            return {data.begin() + index, this};
+        }
+
         constexpr const_iterator find(const Key &key) const noexcept {
             return {lookup<true>(key), this};
         }
