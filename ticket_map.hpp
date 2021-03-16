@@ -118,6 +118,19 @@ namespace jss {
 
         constexpr ticket_map() noexcept : nextId(), filledItems(0) {}
 
+        constexpr ticket_map(ticket_map &&other) noexcept :
+            nextId(std::move(other.nextId)), data(std::move(other.data)),
+            filledItems(std::move(other.filledItems)) {
+            other.filledItems= 0;
+        }
+        constexpr ticket_map(ticket_map const &other)= default;
+        constexpr ticket_map &operator=(ticket_map const &other)= default;
+        constexpr ticket_map &operator=(ticket_map &&other) noexcept {
+            ticket_map temp(std::move(other));
+            swap(temp);
+            return *this;
+        }
+
         constexpr bool empty() const noexcept {
             return size() == 0;
         }

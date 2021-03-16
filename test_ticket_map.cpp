@@ -365,6 +365,81 @@ void test_clear_removes_elements_but_does_not_reset_ticket() {
     assert(ticket == count);
 }
 
+void test_copies_preserve_elements() {
+    jss::ticket_map<unsigned short, int> map;
+
+    unsigned const count= 100;
+    for(unsigned i= 0; i < count; ++i) {
+        map.insert(i + 1000);
+    }
+
+    jss::ticket_map<unsigned short, int> map2(map);
+
+    assert(map2.size() == map.size());
+
+    for(auto &e : map) {
+        auto found= map2.find(e.ticket);
+        assert(found != map2.end());
+        assert(found->ticket == e.ticket);
+        assert(found->value == e.value);
+        assert(found != map.find(e.ticket));
+    }
+
+    assert(map2.insert(-1)->ticket == count);
+
+    jss::ticket_map<unsigned short, int> map3;
+
+    map3= map;
+
+    assert(map3.size() == map.size());
+
+    for(auto &e : map) {
+        auto found= map3.find(e.ticket);
+        assert(found != map3.end());
+        assert(found->ticket == e.ticket);
+        assert(found->value == e.value);
+        assert(found != map.find(e.ticket));
+    }
+
+    assert(map3.insert(-1)->ticket == count);
+}
+
+void test_move_transfers_elements() {
+    jss::ticket_map<unsigned short, int> map;
+
+    unsigned const count= 100;
+    for(unsigned i= 0; i < count; ++i) {
+        map.insert(i + 1000);
+    }
+
+    static_assert(
+        std::is_nothrow_move_constructible<jss::ticket_map<int, int>>::value);
+    static_assert(
+        std::is_nothrow_move_assignable<jss::ticket_map<int, int>>::value);
+
+    jss::ticket_map<unsigned short, int> map2(std::move(map));
+
+    assert(map2.size() == count);
+    assert(map.size() == 0);
+    assert(map.empty());
+
+    for(auto &e : map2) {
+        assert(e.value == e.ticket + 1000);
+    }
+
+    assert(map2.insert(-1)->ticket == count);
+
+    jss::ticket_map<unsigned short, int> map3;
+
+    map3= std::move(map2);
+
+    assert(map3.size() == count + 1);
+    assert(map2.size() == 0);
+    assert(map2.empty());
+    assert(map3.insert(-1)->ticket == count + 1);
+    assert(map2.insert(-1)->ticket == count + 1);
+}
+
 int main() {
     test_initially_empty();
     test_inserting_a_value_gives_iterator_to_new_element();
@@ -383,4 +458,6 @@ int main() {
     test_swapping_containers_swaps_everything_including_next_ticket();
     test_can_swap_with_std_swap();
     test_clear_removes_elements_but_does_not_reset_ticket();
+    test_copies_preserve_elements();
+    test_move_transfers_elements();
 }
