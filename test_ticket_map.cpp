@@ -348,6 +348,23 @@ void test_can_swap_with_std_swap() {
     assert(ticket2 == count1);
 }
 
+void test_clear_removes_elements_but_does_not_reset_ticket() {
+    jss::ticket_map<unsigned short, int> map;
+
+    unsigned const count= 100;
+    for(unsigned i= 0; i < count; ++i) {
+        map.insert(i);
+    }
+
+    map.clear();
+
+    assert(map.size() == 0);
+    assert(map.empty());
+
+    auto ticket= map.insert(42)->ticket;
+    assert(ticket == count);
+}
+
 int main() {
     test_initially_empty();
     test_inserting_a_value_gives_iterator_to_new_element();
@@ -365,4 +382,5 @@ int main() {
     test_erase_lots_of_element_use_returned_iterator();
     test_swapping_containers_swaps_everything_including_next_ticket();
     test_can_swap_with_std_swap();
+    test_clear_removes_elements_but_does_not_reset_ticket();
 }

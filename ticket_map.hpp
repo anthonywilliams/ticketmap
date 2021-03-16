@@ -164,6 +164,11 @@ namespace jss {
             std::swap(nextId, other.nextId);
         }
 
+        constexpr void clear() noexcept {
+            data.clear();
+            filledItems= 0;
+        }
+
     private:
         template <typename Iter>
         constexpr Iter next_valid(Iter iter) const noexcept {
@@ -223,8 +228,9 @@ namespace jss {
 namespace std {
 
     template <typename Key, typename Value>
-    void
-    swap(jss::ticket_map<Key, Value> &lhs, jss::ticket_map<Key, Value> &rhs) {
+    void swap(
+        jss::ticket_map<Key, Value> &lhs,
+        jss::ticket_map<Key, Value> &rhs) noexcept {
         lhs.swap(rhs);
     }
 } // namespace std
