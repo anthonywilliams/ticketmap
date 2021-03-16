@@ -1,5 +1,6 @@
 #include "ticket_map.hpp"
 #include <assert.h>
+#include <type_traits>
 
 void test_initially_empty() {
     jss::ticket_map<int, int> map;
@@ -49,6 +50,26 @@ void test_value_can_be_retrieved_if_inserted() {
 
     assert(iter->ticket == 0);
     assert(iter->value == 42);
+}
+
+void test_can_iterate_over_values() {
+    jss::ticket_map<int, int> map;
+
+    std::vector<int> const values= {2,  3,    56,          12, 99, -12,
+                                    42, 1213, -1283137618, 0,  12, 12};
+
+    for(auto &e : values) {
+        map.insert(e);
+    }
+
+    std::size_t index= 0;
+    for(auto &entry : map) {
+        static_assert(std::is_same_v<decltype(entry.ticket), const int &>);
+        static_assert(std::is_same_v<decltype(entry.value), int &>);
+        assert(entry.ticket == index);
+        assert(entry.value == values[index]);
+        ++index;
+    }
 }
 
 int main() {

@@ -44,22 +44,23 @@ namespace jss {
             /// Required iterator typedefs
             using difference_type= std::ptrdiff_t;
 
-            // /// Compare iterators for inequality.
-            // friend bool
-            // operator!=(iterator_impl const &lhs, iterator_impl const &rhs)
-            // noexcept {}
+            /// Compare iterators for inequality.
+            friend bool operator!=(
+                iterator_impl const &lhs, iterator_impl const &rhs) noexcept {
+                return lhs.iter != rhs.iter;
+            }
 
-            // /// Equality in terms of iterator_impls: if it's not not-equal
-            // then
-            // /// it must be equal
-            // friend bool
-            // operator==(iterator_impl const &lhs, iterator_impl const &rhs)
-            // noexcept {
-            //     return !(lhs != rhs);
-            // }
+            /// Equality in terms of iterator_impls: if it's not not-equal then
+            /// it must be equal
+            friend bool operator==(
+                iterator_impl const &lhs, iterator_impl const &rhs) noexcept {
+                return !(lhs != rhs);
+            }
 
-            // /// Dereference the iterator
-            // const value_type operator*() const noexcept {}
+            /// Dereference the iterator
+            const value_type operator*() const noexcept {
+                return value_type{iter->first, iter->second};
+            }
 
             /// Dereference for iter->m
             arrow_proxy operator->() const noexcept {
@@ -120,6 +121,14 @@ namespace jss {
             if(pos == data.end() || pos->first != key)
                 return const_iterator(data.end());
             return const_iterator(pos);
+        }
+
+        constexpr iterator begin() noexcept {
+            return iterator(data.begin());
+        }
+
+        constexpr iterator end() noexcept {
+            return iterator(data.end());
         }
 
     private:
