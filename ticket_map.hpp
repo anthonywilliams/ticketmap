@@ -72,46 +72,36 @@ namespace jss {
                 return temp;
             }
 
-            /// Copy constructor
-            iterator(iterator const &other) noexcept= default;
-            /// Move constructor
-            iterator(iterator &&other) noexcept= default;
-
-            /// Copy assignment
-            iterator &operator=(iterator const &other) noexcept= default;
-
-            /// Move assignment
-            iterator &operator=(iterator &&other) noexcept= default;
-
-            /// Destructor
-            ~iterator()= default;
-
         private:
             friend class ticket_map;
 
-            iterator(typename collection_type::iterator iter_) :
+            constexpr iterator(typename collection_type::iterator iter_) :
                 iter(std::move(iter_)) {}
 
             /// The stored iterator
             typename collection_type::iterator iter;
         };
 
-        ticket_map() : nextId() {}
+        constexpr ticket_map() noexcept : nextId(), filledItems(0) {}
 
-        bool empty() const noexcept {
-            return true;
+        constexpr bool empty() const noexcept {
+            return size() == 0;
         }
 
-        std::size_t size() const noexcept {
-            return 0;
+        constexpr std::size_t size() const noexcept {
+            return filledItems;
         }
 
-        iterator insert(Value v) {
-            return iterator(data.insert(data.end(), {nextId++, std::move(v)}));
+        constexpr iterator insert(Value v) {
+            auto res=
+                iterator(data.insert(data.end(), {nextId++, std::move(v)}));
+            ++filledItems;
+            return res;
         }
 
     private:
         Key nextId;
         collection_type data;
+        std::size_t filledItems;
     };
 } // namespace jss
