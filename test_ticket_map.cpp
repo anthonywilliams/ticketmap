@@ -2,6 +2,7 @@
 #include <assert.h>
 #include <type_traits>
 #include <string>
+#include <iostream>
 
 void test_initially_empty() {
     jss::ticket_map<int, int> map;
@@ -147,6 +148,134 @@ void test_after_erasing_middle_element_iteration_skips_it() {
     assert(it == map.end());
 }
 
+void test_after_erasing_last_element_iteration_skips_it() {
+    jss::ticket_map<unsigned short, std::string> map;
+
+    map.insert("first");
+    map.insert("second");
+    auto ticket= map.insert("third")->ticket;
+    auto after_erased= map.erase(ticket);
+    assert(after_erased == map.end());
+
+    assert(map.size() == 2);
+
+    unsigned index= 0;
+    auto it= map.begin();
+    assert(it != after_erased);
+    assert(it != map.end());
+    assert(it->ticket == 0);
+    assert(it->value == "first");
+    assert(it != after_erased);
+    ++it;
+    assert(it != after_erased);
+    assert(it != map.end());
+    assert(it->ticket == 1);
+    assert(it->value == "second");
+    assert((it++)->ticket == 1);
+    assert(it == after_erased);
+    assert(it == map.end());
+}
+
+void test_after_erasing_new_elements_added_correctly() {
+    jss::ticket_map<unsigned short, int> map;
+
+    unsigned const count= 11;
+    for(unsigned i= 0; i < count; ++i) {
+        map.insert(i);
+    }
+
+    for(unsigned i= 0; i < count; i+= 2) {
+        map.erase(i);
+    }
+
+    assert(map.size() == count / 2);
+
+    auto iter= map.insert(99);
+    assert(iter->ticket == count);
+    assert(iter->value == 99);
+
+    assert(map.size() == count / 2 + 1);
+
+    std::vector<int> expected;
+    for(unsigned i= 1; i < count; i+= 2) {
+        expected.push_back(i);
+    }
+    expected.push_back(99);
+
+    assert(map.size() == expected.size());
+    unsigned i= 0;
+    for(auto &e : map) {
+        assert(e.value == expected[i]);
+        ++i;
+    }
+}
+
+void test_after_erasing_lots_of_elements_still_ok() {
+    jss::ticket_map<unsigned short, int> map;
+
+    unsigned const count= 1000;
+    for(unsigned i= 0; i < count; ++i) {
+        map.insert(i);
+    }
+
+    auto const cutoff= (count * 9 / 10);
+
+    for(unsigned i= 0; i < cutoff; ++i) {
+        map.erase(map.begin()->ticket);
+    }
+
+    unsigned val= cutoff;
+    for(auto &e : map) {
+        assert(e.value == val);
+        ++val;
+    }
+}
+
+void test_can_erase_with_iterator() {
+    jss::ticket_map<long, std::string> map;
+
+    map.insert("first");
+    auto ticket= map.insert("second")->ticket;
+    map.insert("third");
+    auto iter= map.find(ticket);
+    auto after_erased= map.erase(iter);
+    assert(after_erased != map.end());
+    assert(after_erased->ticket == 2);
+    assert(after_erased->value == "third");
+
+    assert(map.size() == 2);
+}
+
+void test_erase_lots_of_element_use_returned_iterator() {
+    jss::ticket_map<unsigned short, int> map;
+
+    unsigned const count= 1000;
+    for(unsigned i= 0; i < count; ++i) {
+        map.insert(i);
+    }
+
+    auto const cutoff= (count * 9 / 10);
+
+    auto iter= map.begin();
+    for(unsigned i= 0; i < cutoff; ++i) {
+        iter= map.erase(iter);
+    }
+
+    assert(iter->value == cutoff);
+    assert(iter == map.begin());
+
+    unsigned val= cutoff;
+    for(; iter != map.end(); ++iter, ++val) {
+        assert(iter->value == val);
+    }
+
+    val= cutoff;
+    for(auto &e : map) {
+        assert(e.value == val);
+        ++val;
+    }
+}
+
 int main() {
     test_initially_empty();
     test_inserting_a_value_gives_iterator_to_new_element();
@@ -157,4 +286,9 @@ int main() {
     test_begin_and_end_types();
     test_after_erasing_value_not_there();
     test_after_erasing_middle_element_iteration_skips_it();
+    test_after_erasing_last_element_iteration_skips_it();
+    test_after_erasing_new_elements_added_correctly();
+    test_after_erasing_lots_of_elements_still_ok();
+    test_can_erase_with_iterator();
+    test_erase_lots_of_element_use_returned_iterator();
 }

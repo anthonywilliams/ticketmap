@@ -150,19 +150,35 @@ namespace jss {
         }
 
         constexpr iterator erase(const Key &key) noexcept {
-            auto iter= lookup<false>(key);
+            return {erase_entry(lookup<false>(key)), this};
+        }
+
+        constexpr iterator erase(const_iterator pos) noexcept {
+            return {erase_entry(data.begin() + (pos.iter - data.begin())),
+                    this};
+        }
+
+    private:
+        template <typename Iter>
+        constexpr Iter next_valid(Iter iter) const noexcept {
+            for(; iter != data.end() && !iter->second; ++iter)
+                ;
+            return iter;
+        }
+
+        constexpr typename collection_type::iterator
+        erase_entry(typename collection_type::iterator iter) {
             if(iter != data.end()) {
                 iter->second.reset();
                 iter= next_valid(iter);
                 --filledItems;
+                if(needs_compaction()) {
+                    auto key=
+                        iter != data.end() ? iter->first : std::optional<Key>();
+                    compact();
+                    iter= key ? lookup<false>(*key) : data.end();
+                }
             }
-            return {iter, this};
-        }
-
-    private:
-        template <typename Iter> Iter next_valid(Iter iter) const {
-            for(; iter != data.end() && !iter->second; ++iter)
-                ;
             return iter;
         }
 
@@ -178,6 +194,18 @@ namespace jss {
             if(pos == data.end() || pos->first != key || !pos->second)
                 return data.end();
             return pos;
+        }
+
+        bool needs_compaction() const noexcept {
+            return filledItems < (data.size() / 2);
+        }
+
+        void compact() {
+            data.erase(
+                std::remove_if(
+                    data.begin(), data.end(),
+                    [](auto &entry) { return !entry.second; }),
+                data.end());
         }
 
         Key nextId;
