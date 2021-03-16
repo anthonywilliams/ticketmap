@@ -44,7 +44,7 @@ namespace jss {
             /// Required iterator typedefs
             using pointer= value_type *;
             /// Required iterator typedefs
-            using difference_type= std::ptrdiff_t;
+            using difference_type= void;
 
             /// Compare iterators for inequality.
             friend bool operator!=(
@@ -117,6 +117,11 @@ namespace jss {
         using const_iterator= iterator_impl<true>;
 
         constexpr ticket_map() noexcept : nextId(), filledItems(0) {}
+
+        template <typename Iter>
+        constexpr ticket_map(Iter first, Iter last) : ticket_map() {
+            insert(first, last);
+        }
 
         constexpr ticket_map(ticket_map &&other) noexcept :
             nextId(std::move(other.nextId)), data(std::move(other.data)),

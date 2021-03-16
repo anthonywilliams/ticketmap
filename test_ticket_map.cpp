@@ -462,6 +462,21 @@ void test_bulk_insert() {
     assert(iter == map.end());
 }
 
+void test_construct_from_range() {
+    std::vector<int> const entries= {1, 2, 42, 59, 66, 78, 99};
+    jss::ticket_map<unsigned short, int> map(entries.begin(), entries.end());
+    assert(map.size() == entries.size());
+    assert(!map.empty());
+    auto iter= map.begin();
+    for(auto it= entries.begin(); it != entries.end(); ++it, ++iter) {
+        assert(iter != map.end());
+        assert(iter->value == *it);
+    }
+    assert(iter == map.end());
+
+    assert(map.insert(99)->ticket == entries.size());
+}
+
 int main() {
     test_initially_empty();
     test_inserting_a_value_gives_iterator_to_new_element();
@@ -483,4 +498,5 @@ int main() {
     test_copies_preserve_elements();
     test_move_transfers_elements();
     test_bulk_insert();
+    test_construct_from_range();
 }
