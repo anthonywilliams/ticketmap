@@ -11,23 +11,22 @@ void test_initially_empty() {
     assert(map.size() == 0);
 }
 
-void test_inserting_a_value_gives_iterator_to_new_element() {
+void test_inserting_a_value_gives_ticket_for_new_element() {
     jss::ticket_map<int, int> map;
 
-    auto iter= map.insert(42);
+    auto ticket= map.insert(42);
 
-    assert(iter->ticket == 0);
-    assert(iter->value == 42);
+    assert(ticket == 0);
+    assert(map[ticket] == 42);
 }
 
 void test_inserting_a_second_value_gives_new_ticket() {
     jss::ticket_map<int, int> map;
 
     map.insert(99);
-    auto iter= map.insert(42);
+    auto ticket= map.insert(42);
 
-    assert(iter->ticket == 1);
-    assert(iter->value == 42);
+    assert(ticket == 1);
 }
 
 void test_inserting_a_bunch_of_elements_gives_iterators_and_updates_size() {
@@ -36,9 +35,9 @@ void test_inserting_a_bunch_of_elements_gives_iterators_and_updates_size() {
     auto const count= 100;
 
     for(unsigned i= 0; i < count; ++i) {
-        auto iter= map.insert(i);
-        assert(iter->ticket == i);
-        assert(iter->value == i);
+        auto ticket= map.insert(i);
+        assert(ticket == i);
+        assert(map[ticket] == i);
         assert(map.size() == i + 1);
         assert(!map.empty());
     }
@@ -101,12 +100,10 @@ void test_begin_and_end_types() {
 void test_after_erasing_value_not_there() {
     jss::ticket_map<unsigned short, std::string> map;
 
-    auto iter= map.insert("hello");
-    assert(iter == map.begin());
-    assert(iter != map.end());
+    auto ticket= map.insert("hello");
+    assert(ticket == map.begin()->ticket);
 
-    auto const ticket= iter->ticket;
-    assert(map.find(ticket) == iter);
+    assert(map.find(ticket) == map.begin());
 
     auto iter2= map.erase(ticket);
 
@@ -122,7 +119,7 @@ void test_after_erasing_middle_element_iteration_skips_it() {
     jss::ticket_map<unsigned short, std::string> map;
 
     map.insert("first");
-    auto ticket= map.insert("second")->ticket;
+    auto ticket= map.insert("second");
     map.insert("third");
     auto after_erased= map.erase(ticket);
     assert(after_erased != map.end());
@@ -153,7 +150,7 @@ void test_after_erasing_last_element_iteration_skips_it() {
 
     map.insert("first");
     map.insert("second");
-    auto ticket= map.insert("third")->ticket;
+    auto ticket= map.insert("third");
     auto after_erased= map.erase(ticket);
     assert(after_erased == map.end());
 
@@ -190,9 +187,9 @@ void test_after_erasing_new_elements_added_correctly() {
 
     assert(map.size() == count / 2);
 
-    auto iter= map.insert(99);
-    assert(iter->ticket == count);
-    assert(iter->value == 99);
+    auto ticket= map.insert(99);
+    assert(ticket == count);
+    assert(map[ticket] == 99);
 
     assert(map.size() == count / 2 + 1);
 
@@ -235,7 +232,7 @@ void test_can_erase_with_iterator() {
     jss::ticket_map<long, std::string> map;
 
     map.insert("first");
-    auto ticket= map.insert("second")->ticket;
+    auto ticket= map.insert("second");
     map.insert("third");
     auto iter= map.find(ticket);
     auto after_erased= map.erase(iter);
@@ -305,8 +302,8 @@ void test_swapping_containers_swaps_everything_including_next_ticket() {
     assert(b.size() == count1);
     assert(a.size() == count2);
 
-    auto ticket1= a.insert(99)->ticket;
-    auto ticket2= b.insert(99)->ticket;
+    auto ticket1= a.insert(99);
+    auto ticket2= b.insert(99);
 
     assert(ticket1 == count2);
     assert(ticket2 == count1);
@@ -341,8 +338,8 @@ void test_can_swap_with_std_swap() {
     assert(b.size() == count1);
     assert(a.size() == count2);
 
-    auto ticket1= a.insert(99)->ticket;
-    auto ticket2= b.insert(99)->ticket;
+    auto ticket1= a.insert(99);
+    auto ticket2= b.insert(99);
 
     assert(ticket1 == count2);
     assert(ticket2 == count1);
@@ -361,7 +358,7 @@ void test_clear_removes_elements_but_does_not_reset_ticket() {
     assert(map.size() == 0);
     assert(map.empty());
 
-    auto ticket= map.insert(42)->ticket;
+    auto ticket= map.insert(42);
     assert(ticket == count);
 }
 
@@ -385,7 +382,7 @@ void test_copies_preserve_elements() {
         assert(found != map.find(e.ticket));
     }
 
-    assert(map2.insert(-1)->ticket == count);
+    assert(map2.insert(-1) == count);
 
     jss::ticket_map<unsigned short, int> map3;
 
@@ -401,7 +398,7 @@ void test_copies_preserve_elements() {
         assert(found != map.find(e.ticket));
     }
 
-    assert(map3.insert(-1)->ticket == count);
+    assert(map3.insert(-1) == count);
 }
 
 void test_move_transfers_elements() {
@@ -427,7 +424,7 @@ void test_move_transfers_elements() {
         assert(e.value == e.ticket + 1000);
     }
 
-    assert(map2.insert(-1)->ticket == count);
+    assert(map2.insert(-1) == count);
 
     jss::ticket_map<unsigned short, int> map3;
 
@@ -436,8 +433,8 @@ void test_move_transfers_elements() {
     assert(map3.size() == count + 1);
     assert(map2.size() == 0);
     assert(map2.empty());
-    assert(map3.insert(-1)->ticket == count + 1);
-    assert(map2.insert(-1)->ticket == count + 1);
+    assert(map3.insert(-1) == count + 1);
+    assert(map2.insert(-1) == count + 1);
 }
 
 void test_bulk_insert() {
@@ -475,7 +472,7 @@ void test_construct_from_range() {
     assert(iter == map.end());
     assert(map.size() == entries.size());
 
-    assert(map.insert(99)->ticket == entries.size());
+    assert(map.insert(99) == entries.size());
 }
 
 void test_emplace() {
@@ -488,10 +485,10 @@ void test_emplace() {
 
     jss::ticket_map<int, X> map;
 
-    auto iter= map.emplace(42, "hello");
-    assert(iter->ticket == 0);
-    assert(iter->value.val == 142);
-    assert(iter->value.str == "hello world");
+    auto ticket= map.emplace(42, "hello");
+    assert(ticket == 0);
+    assert(map[ticket].val == 142);
+    assert(map[ticket].str == "hello world");
     assert(map.size() == 1);
 }
 
@@ -502,7 +499,7 @@ void test_ticket_must_be_incrementable() {
 void test_direct_lookup() {
     jss::ticket_map<int, std::string> map;
 
-    auto ticket= map.insert("hello")->ticket;
+    auto ticket= map.insert("hello");
 
     std::string &s= map[ticket];
     assert(&s == &map.begin()->value);
@@ -547,7 +544,7 @@ void test_iteration_over_const() {
 
 int main() {
     test_initially_empty();
-    test_inserting_a_value_gives_iterator_to_new_element();
+    test_inserting_a_value_gives_ticket_for_new_element();
     test_inserting_a_second_value_gives_new_ticket();
     test_inserting_a_bunch_of_elements_gives_iterators_and_updates_size();
     test_can_iterate_over_values();

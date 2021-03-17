@@ -209,11 +209,11 @@ namespace jss {
         /// Insert a new value into the map. It is assigned a new ticket value.
         /// Returns an iterator that references the new entry.
         /// Invalidates any existing iterators into the map.
-        constexpr iterator insert(Value v) {
-            auto res= iterator(
-                data.insert(data.end(), {nextId++, std::move(v)}), this);
+        constexpr Ticket insert(Value v) {
+            auto id= nextId++;
+            data.insert(data.end(), {id, std::move(v)});
             ++filledItems;
-            return res;
+            return id;
         }
 
         /// Insert a set of new values into the map. Each is assigned a new
@@ -232,12 +232,12 @@ namespace jss {
         /// Insert a new value into the map, directly constructing in place.
         /// Returns an iterator that references the new entry.
         /// Invalidates any existing iterators into the map.
-        template <typename... Args>
-        constexpr iterator emplace(Args &&... args) {
-            auto baseIter= data.insert(data.end(), {nextId++, std::nullopt});
+        template <typename... Args> constexpr Ticket emplace(Args &&... args) {
+            auto id= nextId++;
+            auto baseIter= data.insert(data.end(), {id, std::nullopt});
             baseIter->second.emplace(std::forward<Args>(args)...);
             ++filledItems;
-            return {baseIter, this};
+            return id;
         }
 
         /// Find a value in the map by its ticket. Returns an iterator referring

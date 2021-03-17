@@ -45,14 +45,16 @@ access or erase the value using that ticket.
 int main(){
     jss::ticket_map<int,std::string> map;
 
-    auto ticket1=map.insert("hello")->ticket;
-    auto ticket2=map.insert("world")->ticket;
+    auto ticket1=map.insert("hello");
+    auto ticket2=map.insert("world");
     
     std::cout<<map[ticket1]<<" "<<map[ticket2]<<std::endl;
     
     map.erase(ticket1);
 }
 ~~~
+
+
 
 
 ## License
