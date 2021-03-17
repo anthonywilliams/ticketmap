@@ -190,15 +190,22 @@ namespace jss {
         }
 
         constexpr const_iterator find(const Key &key) const noexcept {
-            return {lookup<true>(key), this};
+            return {lookup<true>(data, key), this};
         }
 
         constexpr iterator find(const Key &key) noexcept {
-            return {lookup<false>(key), this};
+            return {lookup<false>(data, key), this};
         }
 
         constexpr Value &operator[](const Key &key) {
-            auto iter= lookup<false>(key);
+            auto iter= lookup<false>(data, key);
+            if(iter == data.end())
+                throw std::out_of_range("No entry for specified ticket");
+            return *iter->second;
+        }
+
+        constexpr const Value &operator[](const Key &key) const {
+            auto iter= lookup<true>(data, key);
             if(iter == data.end())
                 throw std::out_of_range("No entry for specified ticket");
             return *iter->second;
@@ -213,7 +220,7 @@ namespace jss {
         }
 
         constexpr iterator erase(const Key &key) noexcept {
-            return {erase_entry(lookup<false>(key)), this};
+            return {erase_entry(lookup<false>(data, key)), this};
         }
 
         constexpr iterator erase(const_iterator pos) noexcept {
@@ -250,17 +257,17 @@ namespace jss {
                     auto key=
                         iter != data.end() ? iter->first : std::optional<Key>();
                     compact();
-                    iter= key ? lookup<false>(*key) : data.end();
+                    iter= key ? lookup<false>(data, *key) : data.end();
                 }
             }
             return iter;
         }
 
         template <bool is_const>
-        std::conditional_t<
+        static constexpr std::conditional_t<
             is_const, typename collection_type::const_iterator,
             typename collection_type::iterator>
-        lookup(Key const &key) noexcept {
+        lookup(collection_type &data, Key const &key) noexcept {
             auto pos= std::lower_bound(
                 data.begin(), data.end(), key,
                 [](auto &value, const Key &key) { return value.first < key; });

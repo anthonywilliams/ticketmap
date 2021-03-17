@@ -504,7 +504,7 @@ void test_direct_lookup() {
 
     auto ticket= map.insert("hello")->ticket;
 
-    auto &s= map[ticket];
+    std::string &s= map[ticket];
     assert(&s == &map.begin()->value);
     assert(s == "hello");
 
@@ -516,6 +516,11 @@ void test_direct_lookup() {
     } catch(...) {
         assert(!"Should throw out-of-range");
     }
+
+    auto const &cmap= map;
+
+    static_assert(std::is_same_v<decltype(cmap[ticket]), const std::string &>);
+    assert(&map[ticket] == &s);
 }
 
 int main() {
