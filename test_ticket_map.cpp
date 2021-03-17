@@ -499,6 +499,25 @@ void test_key_must_be_incrementable() {
     // jss::ticket_map<std::string, int> map; // should fail to compile
 }
 
+void test_direct_lookup() {
+    jss::ticket_map<int, std::string> map;
+
+    auto ticket= map.insert("hello")->ticket;
+
+    auto &s= map[ticket];
+    assert(&s == &map.begin()->value);
+    assert(s == "hello");
+
+    try {
+        map[ticket + 1];
+        assert(!"Should throw");
+    } catch(std::out_of_range &) {
+        assert(true);
+    } catch(...) {
+        assert(!"Should throw out-of-range");
+    }
+}
+
 int main() {
     test_initially_empty();
     test_inserting_a_value_gives_iterator_to_new_element();
@@ -522,4 +541,5 @@ int main() {
     test_bulk_insert();
     test_construct_from_range();
     test_emplace();
+    test_direct_lookup();
 }

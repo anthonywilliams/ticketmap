@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <type_traits>
 #include <optional>
+#include <stdexcept>
 
 namespace jss {
 
@@ -194,6 +195,13 @@ namespace jss {
 
         constexpr iterator find(const Key &key) noexcept {
             return {lookup<false>(key), this};
+        }
+
+        constexpr Value &operator[](const Key &key) {
+            auto iter= lookup<false>(key);
+            if(iter == data.end())
+                throw std::out_of_range("No entry for specified ticket");
+            return *iter->second;
         }
 
         constexpr iterator begin() noexcept {
