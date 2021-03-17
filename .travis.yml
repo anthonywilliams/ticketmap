@@ -78,39 +78,6 @@ matrix:
       env:
         - MATRIX_EVAL="CC=clang-10 && CXX=clang++-10"
       name: "Linux clang 10"
-    - os: linux
-      dist: bionic
-      addons:
-        apt:
-          sources:
-            - llvm-toolchain-bionic-11
-          packages:
-            - clang-11
-      env:
-        - MATRIX_EVAL="CC=clang-11 && CXX=clang++-11"
-      name: "Linux clang 11"
-    - os: linux
-      dist: bionic
-      addons:
-        apt:
-          sources:
-            - llvm-toolchain-bionic-12
-          packages:
-            - clang-12
-      env:
-        - MATRIX_EVAL="CC=clang-12 && CXX=clang++-12"
-      name: "Linux clang 12"
-    - os: linux
-      dist: bionic
-      addons:
-        apt:
-          sources:
-            - llvm-toolchain-bionic-13
-          packages:
-            - clang-13
-      env:
-        - MATRIX_EVAL="CC=clang-13 && CXX=clang++-13"
-      name: "Linux clang 13"
         
 before_install:
     - eval "${MATRIX_EVAL}"
