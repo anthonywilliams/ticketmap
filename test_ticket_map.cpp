@@ -523,6 +523,28 @@ void test_direct_lookup() {
     assert(&map[ticket] == &s);
 }
 
+void test_iteration_over_const() {
+    std::vector<int> const entries= {1, 2, 42, 59, 66, 78, 99};
+    jss::ticket_map<int, int> map(entries.begin(), entries.end());
+
+    jss::ticket_map<int, int> const &cmap= map;
+    jss::ticket_map<int, int>::const_iterator iter= cmap.begin();
+    for(auto it= entries.begin(); it != entries.end(); ++it, ++iter) {
+        assert(iter != cmap.end());
+        assert(iter->value == *it);
+    }
+
+    static_assert(
+        std::is_same_v<
+            decltype(map.cbegin()), jss::ticket_map<int, int>::const_iterator>);
+
+    iter= map.cbegin();
+    for(auto it= entries.begin(); it != entries.end(); ++it, ++iter) {
+        assert(iter != map.cend());
+        assert(iter->value == *it);
+    }
+}
+
 int main() {
     test_initially_empty();
     test_inserting_a_value_gives_iterator_to_new_element();
@@ -547,4 +569,5 @@ int main() {
     test_construct_from_range();
     test_emplace();
     test_direct_lookup();
+    test_iteration_over_const();
 }

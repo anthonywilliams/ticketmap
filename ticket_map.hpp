@@ -213,6 +213,22 @@ namespace jss {
             return {data.end(), this};
         }
 
+        constexpr const_iterator begin() const noexcept {
+            return {next_valid(data.begin()), this};
+        }
+
+        constexpr const_iterator end() const noexcept {
+            return {data.end(), this};
+        }
+
+        constexpr const_iterator cbegin() const noexcept {
+            return {next_valid(data.begin()), this};
+        }
+
+        constexpr const_iterator cend() const noexcept {
+            return {data.end(), this};
+        }
+
         constexpr iterator erase(const Key &key) noexcept {
             return {erase_entry(lookup(data, key)), this};
         }
