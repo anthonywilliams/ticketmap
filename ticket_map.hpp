@@ -340,10 +340,10 @@ namespace jss {
             compact();
         }
 
-        /// Return the maximum number of items the map can hold without
+        /// Return the maximum number of items that can be inserted without
         /// reallocating
-        constexpr std::size_t capacity() const noexcept {
-            return data.capacity();
+        constexpr std::size_t insert_capacity() const noexcept {
+            return data.capacity() - data.size();
         }
 
     private:

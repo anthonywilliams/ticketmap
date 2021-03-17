@@ -558,7 +558,9 @@ void test_can_reserve() {
 
     unsigned const count= 45;
     map.reserve(count);
-    assert(map.capacity() >= count);
+    assert(map.insert_capacity() >= count);
+
+    auto const initial_capacity= map.insert_capacity();
 
     for(unsigned i= 0; i < count; ++i) {
         map.emplace();
@@ -566,6 +568,8 @@ void test_can_reserve() {
 
     assert(map.size() == count);
     assert(map[0].count == 0);
+
+    assert(map.insert_capacity() == initial_capacity - count);
 }
 
 int main() {
