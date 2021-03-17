@@ -160,6 +160,14 @@ namespace jss {
             return {data.begin() + index, this};
         }
 
+        template <typename... Args>
+        constexpr iterator emplace(Args &&... args) {
+            auto baseIter= data.insert(data.end(), {nextId++, std::nullopt});
+            baseIter->second.emplace(std::forward<Args>(args)...);
+            ++filledItems;
+            return {baseIter, this};
+        }
+
         constexpr const_iterator find(const Key &key) const noexcept {
             return {lookup<true>(key), this};
         }

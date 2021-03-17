@@ -473,8 +473,26 @@ void test_construct_from_range() {
         assert(iter->value == *it);
     }
     assert(iter == map.end());
+    assert(map.size() == entries.size());
 
     assert(map.insert(99)->ticket == entries.size());
+}
+
+void test_emplace() {
+    struct X {
+        int val;
+        std::string str;
+
+        X(int i, std::string const &s) : val(i + 100), str(s + " world") {}
+    };
+
+    jss::ticket_map<int, X> map;
+
+    auto iter= map.emplace(42, "hello");
+    assert(iter->ticket == 0);
+    assert(iter->value.val == 142);
+    assert(iter->value.str == "hello world");
+    assert(map.size() == 1);
 }
 
 int main() {
@@ -499,4 +517,5 @@ int main() {
     test_move_transfers_elements();
     test_bulk_insert();
     test_construct_from_range();
+    test_emplace();
 }
