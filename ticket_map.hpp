@@ -9,6 +9,26 @@
 namespace jss {
 
     template <typename Key, typename Value> class ticket_map {
+
+        static_assert(
+            std::is_default_constructible<Key>(),
+            "Key must be default constructible");
+        static_assert(
+            std::is_same_v<decltype(std::declval<Key &>()++), Key>,
+            "Key must be post incrementable");
+        static_assert(
+            std::is_same_v<
+                decltype(std::declval<Key &>() < std::declval<Key &>()), bool>,
+            "Key must be less-than-comparable");
+        static_assert(
+            std::is_same_v<
+                decltype(std::declval<Key &>() == std::declval<Key &>()), bool>,
+            "Key must be equality-comparable");
+        static_assert(
+            std::is_same_v<
+                decltype(std::declval<Key &>() != std::declval<Key &>()), bool>,
+            "Key must be inequality-comparable");
+
         using collection_type=
             std::vector<std::pair<Key, std::optional<Value>>>;
 

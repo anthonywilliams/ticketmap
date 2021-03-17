@@ -495,6 +495,10 @@ void test_emplace() {
     assert(map.size() == 1);
 }
 
+void test_key_must_be_incrementable() {
+    // jss::ticket_map<std::string, int> map; // should fail to compile
+}
+
 int main() {
     test_initially_empty();
     test_inserting_a_value_gives_iterator_to_new_element();
