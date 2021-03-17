@@ -207,7 +207,7 @@ namespace jss {
         }
 
         /// Insert a new value into the map. It is assigned a new ticket value.
-        /// Returns an iterator that references the new entry.
+        /// Returns the ticket for the new entry.
         /// Invalidates any existing iterators into the map.
         constexpr Ticket insert(Value v) {
             auto id= nextId++;
@@ -229,9 +229,9 @@ namespace jss {
             return {data.begin() + index, this};
         }
 
-        /// Insert a new value into the map, directly constructing in place.
-        /// Returns an iterator that references the new entry.
-        /// Invalidates any existing iterators into the map.
+        /// Insert a new value into the map, directly constructing in place. It
+        /// is assigned a new ticket value. Returns the ticket for the new
+        /// entry. Invalidates any existing iterators into the map.
         template <typename... Args> constexpr Ticket emplace(Args &&... args) {
             auto id= nextId++;
             auto baseIter= data.insert(data.end(), {id, std::nullopt});
@@ -330,6 +330,20 @@ namespace jss {
         constexpr void clear() noexcept {
             data.clear();
             filledItems= 0;
+        }
+
+        /// Ensure the map has room for at least count items
+        constexpr void reserve(std::size_t count) {
+            if(count > size()) {
+                data.reserve(count);
+            }
+            compact();
+        }
+
+        /// Return the maximum number of items the map can hold without
+        /// reallocating
+        constexpr std::size_t capacity() const noexcept {
+            return data.capacity();
         }
 
     private:

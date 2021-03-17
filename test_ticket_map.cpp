@@ -542,6 +542,32 @@ void test_iteration_over_const() {
     }
 }
 
+void test_can_reserve() {
+    struct MoveCounter {
+        unsigned count;
+
+        MoveCounter() : count(0) {}
+        MoveCounter(MoveCounter &&other) : count(other.count + 1) {}
+        MoveCounter &operator=(MoveCounter &&other) {
+            count= other.count + 1;
+            return *this;
+        }
+    };
+
+    jss::ticket_map<int, MoveCounter> map;
+
+    unsigned const count= 45;
+    map.reserve(count);
+    assert(map.capacity() >= count);
+
+    for(unsigned i= 0; i < count; ++i) {
+        map.emplace();
+    }
+
+    assert(map.size() == count);
+    assert(map[0].count == 0);
+}
+
 int main() {
     test_initially_empty();
     test_inserting_a_value_gives_ticket_for_new_element();
@@ -567,4 +593,5 @@ int main() {
     test_emplace();
     test_direct_lookup();
     test_iteration_over_const();
+    test_can_reserve();
 }
