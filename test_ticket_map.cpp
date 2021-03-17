@@ -572,6 +572,41 @@ void test_can_reserve() {
     assert(map.insert_capacity() == initial_capacity - count);
 }
 
+struct MyTicket {
+    int i;
+    MyTicket() : i(100) {}
+
+    MyTicket operator++(int) {
+        MyTicket res(*this);
+        i+= 10;
+        return res;
+    }
+    friend bool operator==(MyTicket const &lhs, MyTicket const &rhs) noexcept {
+        return lhs.i == rhs.i;
+    }
+    friend bool operator!=(MyTicket const &lhs, MyTicket const &rhs) noexcept {
+        return lhs.i != rhs.i;
+    }
+    friend bool operator<(MyTicket const &lhs, MyTicket const &rhs) noexcept {
+        return lhs.i < rhs.i;
+    }
+};
+
+void test_custom_ticket_type() {
+    jss::ticket_map<MyTicket, int> map;
+
+    auto ticket= map.insert(42);
+
+    static_assert(std::is_same_v<decltype(ticket), MyTicket>);
+    assert(ticket.i == 100);
+
+    auto ticket2= map.insert(99);
+    assert(ticket2.i == 110);
+
+    assert(map[ticket] == 42);
+    assert(map[ticket2] == 99);
+}
+
 int main() {
     test_initially_empty();
     test_inserting_a_value_gives_ticket_for_new_element();
@@ -598,4 +633,5 @@ int main() {
     test_direct_lookup();
     test_iteration_over_const();
     test_can_reserve();
+    test_custom_ticket_type();
 }
