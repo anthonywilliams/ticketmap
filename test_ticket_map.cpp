@@ -92,7 +92,7 @@ void test_begin_and_end_types() {
         "begin must return an iterator");
     static_assert(
         std::is_same<decltype((*map.begin()).ticket), int const &>::value,
-        "key is specified type");
+        "ticket is specified type");
     static_assert(
         std::is_same<decltype((*map.begin()).value), std::string &>::value,
         "value is ref");
@@ -495,7 +495,7 @@ void test_emplace() {
     assert(map.size() == 1);
 }
 
-void test_key_must_be_incrementable() {
+void test_ticket_must_be_incrementable() {
     // jss::ticket_map<std::string, int> map; // should fail to compile
 }
 
