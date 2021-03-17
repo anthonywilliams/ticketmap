@@ -1,3 +1,7 @@
+// This code is released under the Boost Software License
+// https://www.boost.org/LICENSE_1_0.txt
+// (C) Copyright 2021 Anthony Williams
+
 #pragma once
 
 #include <cstdlib>
