@@ -198,17 +198,11 @@ namespace jss {
         }
 
         constexpr Value &operator[](const Key &key) {
-            auto iter= lookup(data, key);
-            if(iter == data.end())
-                throw std::out_of_range("No entry for specified ticket");
-            return *iter->second;
+            return index(data, key);
         }
 
         constexpr const Value &operator[](const Key &key) const {
-            auto iter= lookup(data, key);
-            if(iter == data.end())
-                throw std::out_of_range("No entry for specified ticket");
-            return *iter->second;
+            return index(data, key);
         }
 
         constexpr iterator begin() noexcept {
@@ -276,6 +270,17 @@ namespace jss {
             if(pos == data.end() || pos->first != key || !pos->second)
                 return data.end();
             return pos;
+        }
+
+        template <typename Collection>
+        static constexpr std::conditional_t<
+            std::is_const_v<std::remove_reference_t<Collection>>, const Value &,
+            Value &>
+        index(Collection &data, Key const &key) {
+            auto iter= lookup(data, key);
+            if(iter == data.end())
+                throw std::out_of_range("No entry for specified ticket");
+            return *iter->second;
         }
 
         bool needs_compaction() const noexcept {
