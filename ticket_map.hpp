@@ -190,22 +190,22 @@ namespace jss {
         }
 
         constexpr const_iterator find(const Key &key) const noexcept {
-            return {lookup<true>(data, key), this};
+            return {lookup(data, key), this};
         }
 
         constexpr iterator find(const Key &key) noexcept {
-            return {lookup<false>(data, key), this};
+            return {lookup(data, key), this};
         }
 
         constexpr Value &operator[](const Key &key) {
-            auto iter= lookup<false>(data, key);
+            auto iter= lookup(data, key);
             if(iter == data.end())
                 throw std::out_of_range("No entry for specified ticket");
             return *iter->second;
         }
 
         constexpr const Value &operator[](const Key &key) const {
-            auto iter= lookup<true>(data, key);
+            auto iter= lookup(data, key);
             if(iter == data.end())
                 throw std::out_of_range("No entry for specified ticket");
             return *iter->second;
@@ -220,7 +220,7 @@ namespace jss {
         }
 
         constexpr iterator erase(const Key &key) noexcept {
-            return {erase_entry(lookup<false>(data, key)), this};
+            return {erase_entry(lookup(data, key)), this};
         }
 
         constexpr iterator erase(const_iterator pos) noexcept {
@@ -257,17 +257,18 @@ namespace jss {
                     auto key=
                         iter != data.end() ? iter->first : std::optional<Key>();
                     compact();
-                    iter= key ? lookup<false>(data, *key) : data.end();
+                    iter= key ? lookup(data, *key) : data.end();
                 }
             }
             return iter;
         }
 
-        template <bool is_const>
+        template <typename Collection>
         static constexpr std::conditional_t<
-            is_const, typename collection_type::const_iterator,
+            std::is_const_v<std::remove_reference_t<Collection>>,
+            typename collection_type::const_iterator,
             typename collection_type::iterator>
-        lookup(collection_type &data, Key const &key) noexcept {
+        lookup(Collection &data, Key const &key) noexcept {
             auto pos= std::lower_bound(
                 data.begin(), data.end(), key,
                 [](auto &value, const Key &key) { return value.first < key; });
