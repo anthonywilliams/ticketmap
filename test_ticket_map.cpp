@@ -607,6 +607,25 @@ void test_custom_ticket_type() {
     assert(map[ticket2] == 99);
 }
 
+void test_cannot_overflow() {
+    jss::ticket_map<unsigned char, int> map;
+
+    for(unsigned i= 0; i < 256; ++i) {
+        map.insert(i);
+    }
+
+    assert(map.size() == 256);
+
+    try {
+        map.insert(-1);
+        assert(!"Should not be able to insert if ticket overflows");
+    } catch(std::overflow_error &) {
+        assert(true);
+    } catch(...) {
+        assert(!"Wrong type of exception thrown");
+    }
+}
+
 int main() {
     test_initially_empty();
     test_inserting_a_value_gives_ticket_for_new_element();
@@ -634,4 +653,5 @@ int main() {
     test_iteration_over_const();
     test_can_reserve();
     test_custom_ticket_type();
+    test_cannot_overflow();
 }

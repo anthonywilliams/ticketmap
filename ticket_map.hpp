@@ -209,22 +209,21 @@ namespace jss {
         /// Insert a new value into the map. It is assigned a new ticket value.
         /// Returns the ticket for the new entry.
         /// Invalidates any existing iterators into the map.
+        /// Throws overflow_error if the Ticket values have overflowed.
         constexpr Ticket insert(Value v) {
-            auto id= nextId++;
-            data.insert(data.end(), {id, std::move(v)});
-            ++filledItems;
-            return id;
+            return emplace(std::move(v));
         }
 
         /// Insert a set of new values into the map. Each is assigned a new
         /// ticket value. Returns an iterator that references the first new
         /// entry, or end() if no values were inserted.
         /// Invalidates any existing iterators into the map.
+        /// Throws overflow_error if the Ticket values have overflowed.
         template <typename Iter>
         constexpr iterator insert(Iter first, Iter last) {
             auto const index= data.size();
             for(; first != last; ++first) {
-                insert(*first);
+                emplace(*first);
             }
             return {data.begin() + index, this};
         }
@@ -232,8 +231,15 @@ namespace jss {
         /// Insert a new value into the map, directly constructing in place. It
         /// is assigned a new ticket value. Returns the ticket for the new
         /// entry. Invalidates any existing iterators into the map.
+        /// Throws overflow_error if the Ticket values have overflowed.
         template <typename... Args> constexpr Ticket emplace(Args &&... args) {
+            if(overflow)
+                throw std::overflow_error(
+                    "Ticket values overflowed; cannot insert");
             auto id= nextId++;
+            if(nextId < id || nextId == id)
+                overflow= true;
+
             auto baseIter= data.insert(data.end(), {id, std::nullopt});
             baseIter->second.emplace(std::forward<Args>(args)...);
             ++filledItems;
@@ -417,6 +423,7 @@ namespace jss {
                 data.end());
         }
 
+        bool overflow= false;
         Ticket nextId;
         collection_type data;
         std::size_t filledItems;
