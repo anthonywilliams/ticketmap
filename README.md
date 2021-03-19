@@ -1,6 +1,6 @@
 # Ticket Maps
 
-[![Build Status](https://travis-ci.com/anthonywilliams/ticketmap.svg?branch=master)](https://travis-ci.com/anthonywilliams/ticketmap)
+[![Build Status](https://travis-ci.com/anthonywilliams/ticketmap.svg?branch=main)](https://travis-ci.com/anthonywilliams/ticketmap)
 
 It has been an increasingly common scenario that I've encountered
 where you have some ID that's monotonically increasing, such as a
