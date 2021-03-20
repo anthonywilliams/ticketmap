@@ -6,14 +6,15 @@ It has been an increasingly common scenario that I've encountered
 where you have some ID that's monotonically increasing, such as a
 subscription or connection index, or user ID, and you need your C++
 program to hold some data that's associated with that ID value. The
-program can then pass round the ID, and use that ID to access the
+program can then pass around the ID, and use that ID to access the
 associated data at a later point.
 
 Over time, IDs can become invalidated, so the data associated with
 that value is removed, and you end up with a sparse set of
-currently-active IDs. You would therefore naturally lean towards using
-a map (whether a `std::map`, `std::unordered_map` or some other custom
-map) to associate the data with the ID.
+currently-active IDs. You would, therefore, naturally lean towards using
+a map (whether a [std::map](https://en.cppreference.com/w/cpp/container/map),
+[std::unordered_map](https://en.cppreference.com/w/cpp/container/unordered_map)
+or some other custom map) to associate the data with the ID.
 
 Often such maps are implemented as node-based containers, which means
 that the nodes can be allocated at disparate memory addresses, which
@@ -37,25 +38,22 @@ This library is an implementation of that algorithm, which I call a
 value, it is assigned the next available ticket value. You can later
 access or erase the value using that ticket.
 
-~~~cplusplus
+~~~cpp
 #include <string>
 #include <iostream>
 #include "ticket_map.hpp"
 
-int main(){
-    jss::ticket_map<int,std::string> map;
+int main() {
+    jss::ticket_map<int, std::string> map;
 
-    auto ticket1=map.insert("hello");
-    auto ticket2=map.insert("world");
+    auto ticket1 = map.insert("hello");
+    auto ticket2 = map.insert("world");
     
-    std::cout<<map[ticket1]<<" "<<map[ticket2]<<std::endl;
+    std::cout << map[ticket1] << " " << map[ticket2] << std::endl;
     
     map.erase(ticket1);
 }
 ~~~
-
-
-
 
 ## License
 
@@ -84,4 +82,3 @@ This code is released under the [Boost Software License](https://www.boost.org/L
 > FOR ANY DAMAGES OR OTHER LIABILITY, WHETHER IN CONTRACT, TORT OR OTHERWISE,
 > ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 > DEALINGS IN THE SOFTWARE.
-
