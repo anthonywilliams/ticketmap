@@ -236,9 +236,7 @@ namespace jss {
             if(overflow)
                 throw std::overflow_error(
                     "Ticket values overflowed; cannot insert");
-            auto id= nextId++;
-            if(nextId < id || nextId == id)
-                overflow= true;
+            auto id= increment_with_overflow_check(nextId, overflow);
 
             if(!insert_capacity()) {
                 reserve(size() * 2);
@@ -439,6 +437,28 @@ namespace jss {
                     data.begin(), data.end(),
                     [](auto &entry) { return !entry.second; }),
                 data.end());
+        }
+
+        /// Increment a ticket and check for overflow (generic)
+        template <typename T>
+        static std::enable_if_t<!std::is_integral_v<T>, T>
+        increment_with_overflow_check(T &value, bool &overflow) {
+            auto id= value++;
+            if(value < id || value == id)
+                overflow= true;
+            return id;
+        }
+
+        /// Increment a ticket and check for overflow (integral)
+        template <typename T>
+        static std::enable_if_t<std::is_integral_v<T>, T>
+        increment_with_overflow_check(T &value, bool &overflow) {
+            auto id= value;
+            if(value == std::numeric_limits<T>::max())
+                overflow= true;
+            else
+                ++value;
+            return id;
         }
 
         bool overflow= false;

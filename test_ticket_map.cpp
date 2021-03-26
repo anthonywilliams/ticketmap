@@ -626,6 +626,67 @@ void test_cannot_overflow() {
     }
 }
 
+void test_cannot_overflow_signed() {
+    jss::ticket_map<signed char, int> map;
+
+    for(unsigned i= 0; i < 128; ++i) {
+        map.insert(i);
+    }
+
+    assert(map.size() == 128);
+
+    try {
+        map.insert(-1);
+        assert(!"Should not be able to insert if ticket overflows");
+    } catch(std::overflow_error &) {
+        assert(true);
+    } catch(...) {
+        assert(!"Wrong type of exception thrown");
+    }
+}
+
+struct SmallTicket {
+    unsigned char i;
+    SmallTicket() : i(0) {}
+
+    SmallTicket operator++(int) {
+        SmallTicket res(*this);
+        i+= 1;
+        return res;
+    }
+    friend bool
+    operator==(SmallTicket const &lhs, SmallTicket const &rhs) noexcept {
+        return lhs.i == rhs.i;
+    }
+    friend bool
+    operator!=(SmallTicket const &lhs, SmallTicket const &rhs) noexcept {
+        return lhs.i != rhs.i;
+    }
+    friend bool
+    operator<(SmallTicket const &lhs, SmallTicket const &rhs) noexcept {
+        return lhs.i < rhs.i;
+    }
+};
+
+void test_cannot_overflow_custom() {
+    jss::ticket_map<SmallTicket, int> map;
+
+    for(unsigned i= 0; i < 256; ++i) {
+        map.insert(i);
+    }
+
+    assert(map.size() == 256);
+
+    try {
+        map.insert(-1);
+        assert(!"Should not be able to insert if ticket overflows");
+    } catch(std::overflow_error &) {
+        assert(true);
+    } catch(...) {
+        assert(!"Wrong type of exception thrown");
+    }
+}
+
 void test_count() {
     jss::ticket_map<int, int> map;
     assert(!map.count(0));
@@ -668,4 +729,6 @@ int main() {
     test_custom_ticket_type();
     test_cannot_overflow();
     test_count();
+    test_cannot_overflow_signed();
+    test_cannot_overflow_custom();
 }
