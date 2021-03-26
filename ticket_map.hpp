@@ -240,6 +240,9 @@ namespace jss {
             if(nextId < id || nextId == id)
                 overflow= true;
 
+            if(!insert_capacity()) {
+                reserve(size() * 2);
+            }
             auto baseIter= data.insert(data.end(), {id, std::nullopt});
             baseIter->second.emplace(std::forward<Args>(args)...);
             ++filledItems;
@@ -341,15 +344,30 @@ namespace jss {
         /// Ensure the map has room for at least count items
         constexpr void reserve(std::size_t count) {
             if(count > size()) {
-                data.reserve(count);
+                collection_type new_data;
+                new_data.reserve(count);
+                for(auto &[ticket, value] : data) {
+                    if(value) {
+                        new_data.emplace_back(
+                            std::move(ticket), std::move(value));
+                    }
+                }
+                data.swap(new_data);
+            } else {
+                compact();
             }
-            compact();
         }
 
         /// Return the maximum number of items that can be inserted without
         /// reallocating
         constexpr std::size_t insert_capacity() const noexcept {
             return data.capacity() - data.size();
+        }
+
+        /// Return the number of entries for a ticket in the container. The
+        /// return value is 1 if the ticket is in the container, 0 otherwise.
+        constexpr std::size_t count(Ticket const &ticket) const noexcept {
+            return (lookup(data, ticket) == data.end()) ? 0 : 1;
         }
 
     private:

@@ -626,6 +626,19 @@ void test_cannot_overflow() {
     }
 }
 
+void test_count() {
+    jss::ticket_map<int, int> map;
+    assert(!map.count(0));
+    assert(!map.count(1));
+    map.insert(42);
+    assert(map.count(0) == 1);
+    assert(!map.count(1));
+
+    map.erase(0);
+    assert(!map.count(0));
+    assert(!map.count(1));
+}
+
 int main() {
     test_initially_empty();
     test_inserting_a_value_gives_ticket_for_new_element();
@@ -654,4 +667,5 @@ int main() {
     test_can_reserve();
     test_custom_ticket_type();
     test_cannot_overflow();
+    test_count();
 }
